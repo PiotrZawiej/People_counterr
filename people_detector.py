@@ -1,12 +1,21 @@
 import cv2
+from PIL import Image
+import requests
+import numpy as np
 
-def people_detector(photo_dir):
+def get_photo_from_web(url):
+    response = requests.get(url, stream=True)
+    
+    pil_image = Image.open(response.raw)
+    
+    return cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+
+
+def people_detector(image):
     hog = cv2.HOGDescriptor()
     hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-    image = cv2.imread(photo_dir)
-
-    (rects, weights) = hog.detectMultiScale(image, winStride=(7, 7), padding=(8, 8), scale=1.05)
+    (rects, weights) = hog.detectMultiScale(image, winStride=(8, 8), padding=(20, 20), scale=1.1)
 
     num_humans = len(rects)
 
@@ -16,3 +25,6 @@ def people_detector(photo_dir):
     cv2.imwrite("output.jpg", image)
 
     return num_humans
+
+# photo = get_photo_from_web("https://t4.ftcdn.net/jpg/02/87/41/47/360_F_287414734_OKNLmIbSObUKIELfwEK6eu52cdRV5HAK.jpg")
+# people_detector(photo)
