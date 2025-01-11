@@ -1,4 +1,9 @@
 import pika
+import sys
+from datetime import datetime
+from uuid import uuid4
+
+eventid = datetime.now().strftime('%Y%m-%d%H-%M%S-') + str(uuid4())
 
 def get_connection():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -15,9 +20,11 @@ channel = connection.channel()
 
 declare_queue(channel)
 
+message = ' '.join(sys.argv[1:]) or "Hello World!"
 channel.basic_publish(exchange='',
                       routing_key='people_detector',
-                      body='Hello World!')
-print(" [x] Sent 'Hello World!'")
+                      body='Hello World!...')
+
+print(f" [x] Sent", message)
 
 connection.close()
