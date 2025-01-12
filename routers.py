@@ -1,12 +1,16 @@
 from fastapi import HTTPException, APIRouter
-from people_detector import people_detector, get_photo_from_web
+from add_task import add_task_to_queue
+from receive import start_worker
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/add_task")
 async def get_photo():
     url = "https://t4.ftcdn.net/jpg/02/87/41/47/360_F_287414734_OKNLmIbSObUKIELfwEK6eu52cdRV5HAK.jpg"
-    image = get_photo_from_web(url)
+    add_task_to_queue(url)
 
-    people_count = people_detector(image)
-    return {"human_count": people_count}
+    return {"task": "added"}
+
+router.get("/receive_task")
+async def consume_task():
+    start_worker()
