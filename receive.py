@@ -1,7 +1,7 @@
 import pika, time, json
+from people_detector import get_photo_from_web, people_detector
 
 def process_task(ch, method, properties, body):
-    from people_detector import get_photo_from_web, people_detector
 
     task = json.loads(body)
     url = task.get("url")
