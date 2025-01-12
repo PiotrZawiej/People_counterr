@@ -2,6 +2,7 @@ import pika
 import sys
 from datetime import datetime
 from uuid import uuid4
+import json
 
 eventid = datetime.now().strftime('%Y%m-%d%H-%M%S-') + str(uuid4())
 
@@ -13,18 +14,24 @@ def get_connection():
 
 
 def declare_queue(channel):
-    channel.queue_declare(queue='people_detector')
+    channel.queue_declare(queue='people_detector', durable=True)
 
-connection = get_connection()
-channel = connection.channel()
+def add_task_to_queue(url : str):
+    connection = get_connection()
+    channel = connection.channel()
 
-declare_queue(channel)
+    declare_queue(channel)
 
-message = ' '.join(sys.argv[1:]) or "Hello World!"
-channel.basic_publish(exchange='',
-                      routing_key='people_detector',
-                      body='Hello World!...')
+    message = json.dumps({"url": url})
+    channel.basic_publish(exchange='',
+                        routing_key='people_detector',
+                        body= message,
+                        properties=pika.BasicProperties(
+                            delivery_mode = pika.DeliveryMode.Persistent
+                        ))
 
-print(f" [x] Sent", message)
+    connection.close()
+    return {"message": "Task added to queue"}
 
-connection.close()
+url = "https://t4.ftcdn.net/jpg/02/87/41/47/360_F_287414734_OKNLmIbSObUKIELfwEK6eu52cdRV5HAK.jpg"
+add_task_to_queue(url)

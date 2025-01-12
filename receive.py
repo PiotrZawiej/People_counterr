@@ -1,17 +1,31 @@
-import pika, sys, os, time
+import pika, time, json
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
+def process_task(ch, method, properties, body):
+    from people_detector import get_photo_from_web, people_detector
 
-channel.queue_declare(queue='people_detector')
+    task = json.loads(body)
+    url = task.get("url")
+    print(f"Processing image from URL: {url}")
 
-def callback(ch, method, properties, body):
-    print(f" [x] Received {body.decode()}")
-    time.sleep(body.count(b'.'))
-    print(" [x] Done")
-    ch.basic_ack(delivery_tag = method.delivery_tag)
+    try:
+        image = get_photo_from_web(url)
+        people_count = people_detector(image)
+        print(f"People count: {people_count}")
+    except Exception as e:
+        print(f"Error processing task: {e}")
+    
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
-channel.basic_consume(queue='people_detector', on_message_callback=callback)
 
-print(' [*] Waiting for messages. To exit press CTRL+C')
-channel.start_consuming()
+def start_worker():
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+    channel = connection.channel()
+
+    channel.queue_declare(queue='people_detector', durable=True)
+
+    channel.basic_consume(queue='people_detector', on_message_callback=process_task)
+
+    print("Worker started. Waiting for tasks...")
+    channel.start_consuming()
+
+start_worker()
