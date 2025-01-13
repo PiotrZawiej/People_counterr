@@ -1,18 +1,27 @@
 import pika, time, json
 from people_detector import get_photo_from_web, people_detector
 
-def process_task(ch, method, properties, body):
+result = {}
 
+def process_task(ch, method, properties, body):
+    print(body)
+    
     task = json.loads(body)
+
     url = task.get("url")
-    print(f"Processing image from URL: {url}")
+    eventID = task.get("eventID")
+
+    print(f"Processing image ID: {eventID}")
 
     try:
         image = get_photo_from_web(url)
         people_count = people_detector(image)
-        print(f"People count: {people_count}")
+
+        result[url] = people_count
+        print(f"people count:{people_count}")
     except Exception as e:
         print(f"Error processing task: {e}")
+        result[url] = None
     
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
