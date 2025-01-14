@@ -1,7 +1,7 @@
 import pika, time, json
 from people_detector import get_photo_from_web, people_detector
 
-result = {}
+result_store = {}
 
 def process_task(ch, method, properties, body):
     print(body)
@@ -17,11 +17,11 @@ def process_task(ch, method, properties, body):
         image = get_photo_from_web(url)
         people_count = people_detector(image)
 
-        result[url] = people_count
+        result_store[eventID] = {"status": "completed", "human_count": people_count}
         print(f"people count:{people_count}")
     except Exception as e:
         print(f"Error processing task: {e}")
-        result[url] = None
+        result_store[eventID] = {"status": "failed", "error": str(e)}
     
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -37,4 +37,5 @@ def start_worker():
     print("Worker started. Waiting for tasks...")
     channel.start_consuming()
 
-start_worker()
+if __name__ == "__main__":
+    start_worker()
