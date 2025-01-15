@@ -3,9 +3,7 @@ from people_detector import get_photo_from_web, people_detector
 
 result_store = {}
 
-def process_task(ch, method, properties, body):
-    print(body)
-    
+def process_task(ch, method, properties, body):    
     task = json.loads(body)
 
     url = task.get("url")
@@ -22,6 +20,7 @@ def process_task(ch, method, properties, body):
     except Exception as e:
         print(f"Error processing task: {e}")
         result_store[eventID] = {"status": "failed", "error": str(e)}
+
     
     ch.basic_ack(delivery_tag=method.delivery_tag)
 

@@ -17,7 +17,7 @@ async def get_photo():
 
     add_task_to_queue(url, id)
 
-    return {"task": "added"}
+    return {"id": id}
 
 
 @router.get("/get_result")
