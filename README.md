@@ -1,4 +1,4 @@
-# Body_counter
+# People_counter
 
 This project implements an asynchronous image processing system using FastAPI and RabbitMQ. It allows users to submit image URLs for people detection, which are then processed in the background by a worker. The system tracks the progress of each task and provides a way to check the status and result of the detection.
 
