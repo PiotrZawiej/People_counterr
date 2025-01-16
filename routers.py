@@ -1,8 +1,11 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, UploadFile, File
 from add_task import add_task_to_queue
 from uuid import uuid4
 from datetime import datetime
 from receive import result_store
+from io import BytesIO
+from PIL import Image
+from people_detector import 
 
 
 router = APIRouter()
@@ -27,5 +30,24 @@ async def get_result(eventid: str):
         return {"eventid": eventid, "result": result}
     else:
         return {"eventid": eventid, "status": "Task not yet processed"}
+
+
+@router.post("/upload_image")
+async def upload_image(file: UploadFile = File(...)):
+    eventid = generate_eventid()
+
+    try:
+        file_content = await file.read()
+        image = Image.open(BytesIO(file_content))
+
+        people_count = people_detector(image)
+
+        result_store[eventid] = {"status": "completed", "human_count": people_count}
+
+        return {"eventid": eventid, "status": "completed", "human_count": people_count}
+
+    except Exception as e:
+        result_store[eventid] = {"status": "failed", "error": str(e)}
+        raise HTTPException(status_code=400, detail=f"Error processing the image: {str(e)}")
 
 
