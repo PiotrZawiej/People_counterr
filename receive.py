@@ -17,6 +17,7 @@ def process_task(ch, method, properties, body):
 
         result_store[eventID] = {"status": "completed", "human_count": people_count}
         print(f"people count:{people_count}")
+        print(result_store)
     except Exception as e:
         print(f"Error processing task: {e}")
         result_store[eventID] = {"status": "failed", "error": str(e)}
@@ -38,3 +39,4 @@ def start_worker():
 
 if __name__ == "__main__":
     start_worker()
+    
