@@ -5,7 +5,7 @@ from datetime import datetime
 from receive import result_store
 from io import BytesIO
 from PIL import Image
-from people_detector import 
+from people_detector import people_detector
 
 
 router = APIRouter()
