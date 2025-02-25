@@ -35,4 +35,3 @@ def add_task_to_queue(url : str, eventID):
 
     connection.close()
     return {"message": "Task added to queue", "eventid": eventID}
-
