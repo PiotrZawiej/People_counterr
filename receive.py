@@ -1,13 +1,13 @@
 import pika, time, json
 from people_detector import get_photo_from_web, people_detector
+from add_task import send_message_to_queue
 
-result_store = {}
 
 def process_task(ch, method, properties, body):    
     task = json.loads(body)
 
     url = task.get("url")
-    eventID = task.get("eventID")
+    eventID = task.get("eventID")  
 
     print(f"Processing image ID: {eventID}")
 
@@ -15,15 +15,18 @@ def process_task(ch, method, properties, body):
         image = get_photo_from_web(url)
         people_count = people_detector(image)
 
-        result_store[eventID] = {"status": "completed", "human_count": people_count}
-        print(f"people count:{people_count}")
-        print(result_store)
+        result = {"eventID": eventID, "status": "completed", "human_count": people_count}
+        print(f"People count: {people_count}")
+
     except Exception as e:
         print(f"Error processing task: {e}")
-        result_store[eventID] = {"status": "failed", "error": str(e)}
+        result = {"eventID": eventID, "status": "failed", "error": str(e)}
+
+    send_message_to_queue("results_queue", result)
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
     
-    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def start_worker():
