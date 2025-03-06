@@ -32,14 +32,21 @@ async def get_result(eventid: str):
     channel = connection.channel()
     channel.queue_declare(queue='results_queue', durable=True)
 
-    while True:
-        method_frame, header_frame, body = channel.basic_get(queue='results_queue', auto_ack=True)
-        if not body:
-            break  
-        
+    
+    method_frame, header_frame, body = channel.basic_get(queue='results_queue', auto_ack=False)
+    print(body)
+    
+    if body is None:
+        return {"eventID": eventid, "status": "Task not yet processed"}
+
+    try:
         result = json.loads(body)
-        if result.get("eventID") == eventid:
-            return {"eventID": eventid, "result": result}  
+    except json.JSONDecodeError:
+        return {"error": "Invalid JSON in message"}
+    
+    if result.get("eventID") == eventid:
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        return {"eventID": eventid, "result": result}  
 
     return {"eventID": eventid, "status": "Task not yet processed"}
 
