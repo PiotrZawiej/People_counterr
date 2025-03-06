@@ -25,6 +25,3 @@ def people_detector(image):
     cv2.imwrite("output.jpg", image)
 
     return num_humans
-
-# photo = get_photo_from_web("https://t4.ftcdn.net/jpg/02/87/41/47/360_F_287414734_OKNLmIbSObUKIELfwEK6eu52cdRV5HAK.jpg")
-# people_detector(photo)

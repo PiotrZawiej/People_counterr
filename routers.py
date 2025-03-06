@@ -31,22 +31,20 @@ async def get_result(eventid: str):
     channel = connection.channel()
     channel.queue_declare(queue='results_queue', durable=True)
 
-    
-    method_frame, header_frame, body = channel.basic_get(queue='results_queue', auto_ack=False)
-    
-    if body is None:
-        return {"eventID": eventid, "status": "Task not yet processed"}
+    while True:
+        method_frame, header_frame, body = channel.basic_get(queue='results_queue', auto_ack=False)
 
-    try:
-        result = json.loads(body)
-    except json.JSONDecodeError:
-        return {"error": "Invalid JSON in message"}
-    
-    if result.get("eventID") == eventid:
-        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-        return {"eventID": eventid, "result": result}  
+        if body is None:
+            return {"eventID": eventid, "status": "Task not yet processed"}
 
-    return {"eventID": eventid, "status": "Task not yet processed"}
+        try:
+            result = json.loads(body)
+        except json.JSONDecodeError:
+            return {"error": "Invalid JSON in message"}
+
+        if result.get("eventID") == eventid:
+            channel.basic_ack(delivery_tag=method_frame.delivery_tag)  
+            return {"eventID": eventid, "result": result} 
 
 
 @router.post("/upload_image")
