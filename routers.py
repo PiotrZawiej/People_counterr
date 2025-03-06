@@ -2,9 +2,8 @@ from fastapi import HTTPException, APIRouter, UploadFile, File
 from add_task import send_message_to_queue
 from uuid import uuid4
 from datetime import datetime
-from io import BytesIO
+import base64
 from PIL import Image
-from people_detector import people_detector
 import json
 import pika
 
@@ -32,34 +31,37 @@ async def get_result(eventid: str):
     channel = connection.channel()
     channel.queue_declare(queue='results_queue', durable=True)
 
-    while True:
-        method_frame, header_frame, body = channel.basic_get(queue='results_queue', auto_ack=True)
-        if not body:
-            break  
-        
+    
+    method_frame, header_frame, body = channel.basic_get(queue='results_queue', auto_ack=False)
+    
+    if body is None:
+        return {"eventID": eventid, "status": "Task not yet processed"}
+
+    try:
         result = json.loads(body)
-        if result.get("eventID") == eventid:
-            return {"eventID": eventid, "result": result}  
+    except json.JSONDecodeError:
+        return {"error": "Invalid JSON in message"}
+    
+    if result.get("eventID") == eventid:
+        channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        return {"eventID": eventid, "result": result}  
 
     return {"eventID": eventid, "status": "Task not yet processed"}
 
 
-# @router.post("/upload_image")
-# async def upload_image(file: UploadFile = File(...)):
-#     eventid = generate_eventid()
+@router.post("/upload_image")
+async def upload_image(file: UploadFile = File(...)):
+    eventid = generate_eventid()
 
-#     try:
-#         file_content = await file.read()
-#         image = Image.open(BytesIO(file_content))
+    file_content = await file.read()
+    encoded_image = base64.b64encode(file_content).decode("utf-8")  
 
-#         people_count = people_detector(image)
+    task = {
+        "eventID": eventid,
+        "url": "",  
+        "image": encoded_image
+    }
 
-#         result_store[eventid] = {"status": "completed", "human_count": people_count}
+    send_message_to_queue("people_detector", task)
 
-#         return {"eventid": eventid, "status": "completed", "human_count": people_count}
-
-#     except Exception as e:
-#         result_store[eventid] = {"status": "failed", "error": str(e)}
-#         raise HTTPException(status_code=400, detail=f"Error processing the image: {str(e)}")
-
-
+    return {"eventid": eventid, "status": "processing"}
