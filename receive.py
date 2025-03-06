@@ -21,7 +21,7 @@ def process_task(ch, method, properties, body):
         if url:
             image = get_photo_from_web(url)
         elif image_data:
-            
+
             image_bytes = base64.b64decode(image_data)
             image = Image.open(BytesIO(image_bytes))
             image = image.convert("RGB")
@@ -36,6 +36,8 @@ def process_task(ch, method, properties, body):
         result = {"eventID": eventID, "status": "completed", "human_count": people_count}
         print(f"People count: {people_count}")
 
+        print(result)
+
     except Exception as e:
         print(f"Error processing task: {e}")
         result = {"eventID": eventID, "status": "failed", "error": str(e)}
@@ -45,8 +47,6 @@ def process_task(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
     
-
-
 def start_worker():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
