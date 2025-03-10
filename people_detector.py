@@ -2,6 +2,11 @@ import cv2
 from PIL import Image
 import requests
 import numpy as np
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).to(device)
+
 
 def get_photo_from_web(url):
     response = requests.get(url, stream=True)
@@ -12,16 +17,20 @@ def get_photo_from_web(url):
 
 
 def people_detector(image):
-    hog = cv2.HOGDescriptor()
-    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    if isinstance(image, np.ndarray):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    (rects, weights) = hog.detectMultiScale(image, winStride=(8, 8), padding=(20, 20), scale=1.1)
+    results = model(image)
 
-    num_humans = len(rects)
+    detections = results.pandas().xyxy[0]  
 
-    for (x, y, w, h) in rects:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    people = detections[detections['name'] == 'person']
 
-    cv2.imwrite("output.jpg", image)
+    for _, row in people.iterrows():
+        x1, y1, x2, y2, conf = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax']), row['confidence']
+        if conf > 0.5: 
+            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    return num_humans
+    cv2.imwrite("output_yolo.jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+
+    return len(people)  
