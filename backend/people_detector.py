@@ -31,6 +31,6 @@ def people_detector(image):
         if conf > 0.5: 
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    cv2.imwrite("output_yolo.jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+    cv2.imwrite("output.jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
     return len(people)  
