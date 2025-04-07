@@ -31,9 +31,9 @@ def process_task(ch, method, properties, body):
         else:
             raise ValueError("No image data or URL provided")
         
-        people_count = people_detector(image)
+        people_count = people_detector(image, eventID)
 
-        result = {"eventID": eventID, "status": "completed", "human_count": people_count}
+        result = {"eventID": eventID, "status": "completed", "human_count": people_count, "image_url" : f"output_{eventID}.jpg"}
         print(f"People count: {people_count}")
 
         print(result)
