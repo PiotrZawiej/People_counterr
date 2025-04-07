@@ -1,4 +1,5 @@
 from fastapi import HTTPException, APIRouter, UploadFile, File
+from fastapi.responses import FileResponse
 from add_task import send_message_to_queue
 from uuid import uuid4
 from datetime import datetime
@@ -6,6 +7,7 @@ import base64
 from PIL import Image
 import json
 import pika
+import os
 
 
 router = APIRouter()
@@ -63,3 +65,12 @@ async def upload_image(file: UploadFile = File(...)):
     send_message_to_queue("people_detector", task)
 
     return {"eventid": eventid, "status": "processing"}
+
+@router.get("/results/{filename}")
+async def get_processed_image(filename: str):
+    file_path = os.path.join("results", filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(path=file_path, media_type="image/jpeg")

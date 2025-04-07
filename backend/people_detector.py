@@ -3,6 +3,7 @@ from PIL import Image
 import requests
 import numpy as np
 import torch
+import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True).to(device)
@@ -16,7 +17,7 @@ def get_photo_from_web(url):
     return cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
 
 
-def people_detector(image):
+def people_detector(image, image_id):
     if isinstance(image, np.ndarray):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -31,6 +32,10 @@ def people_detector(image):
         if conf > 0.5: 
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    cv2.imwrite("output.jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+    results_dir = os.path.join("backend", "results")
+    os.makedirs(results_dir, exist_ok=True)
+
+    output_path = os.path.join(results_dir, f"output_{image_id}.jpg")
+    cv2.imwrite(output_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
     return len(people)  
