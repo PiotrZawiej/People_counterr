@@ -32,10 +32,7 @@ def people_detector(image, image_id):
         if conf > 0.5: 
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    results_dir = os.path.join("backend", "results")
-    os.makedirs(results_dir, exist_ok=True)
-
-    output_path = os.path.join(results_dir, f"output_{image_id}.jpg")
+    output_path = os.path.join("results", f"output_{image_id}.jpg")
     cv2.imwrite(output_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
     return len(people)  
