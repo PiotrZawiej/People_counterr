@@ -28,11 +28,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json();
             const eventID = data.eventid;
 
+            console.log(eventID)
+
             responseDiv.innerHTML = `
                 <strong>Image sent successfully!</strong><br>
                 Processing... Please wait.
             `;
 
+            // 🔁 Poll backend for result
             const interval = setInterval(async () => {
                 const res = await fetch(`http://localhost:8000/get_result?eventid=${eventID}`);
                 const resultData = await res.json();
