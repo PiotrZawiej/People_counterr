@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const imageUrl = resultData.result.image_url;
 
                     responseDiv.innerHTML = `
-                        ✅ Detection complete!<br>
+                        Detection complete!<br>
                         People detected: <strong>${count}</strong>
                     `;
 
