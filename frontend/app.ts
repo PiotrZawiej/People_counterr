@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 Processing... Please wait.
             `;
 
-            // 🔁 Poll backend for result
             const interval = setInterval(async () => {
                 const res = await fetch(`http://localhost:8000/get_result?eventid=${eventID}`);
                 const resultData = await res.json();
